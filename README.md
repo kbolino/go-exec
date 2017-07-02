@@ -1,5 +1,7 @@
 # Execution framework for Go
 
+[![GoDoc](https://godoc.org/github.com/kbolino/go-exec?status.svg)](https://godoc.org/github.com/kbolino/go-exec)
+
 This is a simple local execution framework for Go, enabling the
 interchangeable use of synchronous and asynchronous execution strategies.
 
