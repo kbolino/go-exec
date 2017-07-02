@@ -27,8 +27,11 @@ type Bounded struct {
 	semaphore chan empty
 }
 
+var _ Strategy = &Bounded{}
+
 // NewBounded creates a new bounded executor which will not allow more than n
 // goroutines to be running simultaneously.
+// NewBounded panics if n is less than 1.
 func NewBounded(n int) *Bounded {
 	if n < 1 {
 		panic("n is less than 1")

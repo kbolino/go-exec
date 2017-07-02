@@ -20,13 +20,15 @@ import (
 
 // Pool provides an asynchronous execution strategy using a fixed-size pool
 // of worker goroutines.
-// Compare Pool with Bounded as both provided a limit on the number of running
+// Compare Pool with Bounded as both provide a limit on the number of running
 // goroutines.
 type Pool struct {
 	workQueue chan func()
 	closeOnce sync.Once
 	waitGroup sync.WaitGroup
 }
+
+var _ Strategy = &Pool{}
 
 // NewPool creates a new worker pool.
 // If queueSize is nonzero, a buffered channel is created of that capacity.
@@ -66,7 +68,7 @@ func (p *Pool) Stop() {
 }
 
 // Wait blocks until the worker pool has finished executing all queued tasks.
-// Wait can only be called after Stop.
+// Wait should only be called after Stop, otherwise it will never return.
 func (p *Pool) Wait() {
 	p.waitGroup.Wait()
 }

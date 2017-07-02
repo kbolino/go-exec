@@ -24,6 +24,8 @@ type Unbounded struct {
 	waitGroup sync.WaitGroup
 }
 
+var _ Strategy = &Unbounded{}
+
 // NewUnbounded creates a new unbounded executor.
 func NewUnbounded() *Unbounded {
 	return &Unbounded{}
