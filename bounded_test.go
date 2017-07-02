@@ -42,6 +42,28 @@ func TestBounded_Do(t *testing.T) {
 	})
 }
 
+func TestBounded_Try(t *testing.T) {
+	Convey("Bounded.Try doesn't block", t, func() {
+		counter := int32(0)
+		bounded := exec.NewBounded(2)
+		tries := []bool{}
+		go func() {
+			for i := 0; i < 3; i++ {
+				try := bounded.Try(func() {
+					atomic.AddInt32(&counter, 1)
+					time.Sleep(50 * time.Millisecond)
+				})
+				tries = append(tries, try)
+			}
+		}()
+		time.Sleep(10 * time.Millisecond)
+		So(tries, ShouldResemble, []bool{true, true, false})
+		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+		time.Sleep(100 * time.Millisecond)
+		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+	})
+}
+
 func TestBounded_Wait(t *testing.T) {
 	Convey("Bounded.Wait blocks until all goroutines are done", t, func() {
 		counter := int32(0)

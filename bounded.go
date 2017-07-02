@@ -43,12 +43,21 @@ func NewBounded(n int) *Bounded {
 // Do runs task on a new goroutine, unless the maximum number of running
 // goroutines has been reached, in which case Do blocks until one or more
 // running goroutines exit.
+// To avoid blocking, use Try instead.
 func (b *Bounded) Do(task func()) {
 	b.acquire(1)
-	go func(b *Bounded) {
-		defer b.release(1)
-		task()
-	}(b)
+	go b.runTask(task)
+}
+
+// Try is the nonblocking version of Do.
+// If task cannot be executed immediately, then Try does nothing with it
+// and returns false.
+func (b *Bounded) Try(task func()) bool {
+	if !b.tryAcquire1() {
+		return false
+	}
+	go b.runTask(task)
+	return true
 }
 
 // Wait blocks until there are no running goroutines.
@@ -70,5 +79,19 @@ func (b *Bounded) acquire(n int) {
 func (b *Bounded) release(n int) {
 	for i := 0; i < n; i++ {
 		<-b.semaphore
+	}
+}
+
+func (b *Bounded) runTask(task func()) {
+	defer b.release(1)
+	task()
+}
+
+func (b *Bounded) tryAcquire1() bool {
+	select {
+	case b.semaphore <- empty{}:
+		return true
+	default:
+		return false
 	}
 }

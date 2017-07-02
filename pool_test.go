@@ -85,6 +85,30 @@ func TestPool_Stop(t *testing.T) {
 	})
 }
 
+func TestPool_Try(t *testing.T) {
+	Convey("Pool.Try doesn't block or enqueue excess tasks", t, func() {
+		pool := exec.NewPool(1, 1)
+		counter := int32(0)
+		tries := []bool{}
+		go func() {
+			for i := 0; i < 3; i++ {
+				try := pool.Try(func() {
+					atomic.AddInt32(&counter, 1)
+					time.Sleep(50 * time.Millisecond)
+				})
+				tries = append(tries, try)
+			}
+		}()
+		time.Sleep(10 * time.Millisecond)
+		So(tries, ShouldResemble, []bool{true, true, false})
+		So(atomic.LoadInt32(&counter), ShouldEqual, 1)
+		time.Sleep(100 * time.Millisecond)
+		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+		time.Sleep(100 * time.Millisecond)
+		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+	})
+}
+
 func TestPool_Wait(t *testing.T) {
 	Convey("Pool.Wait blocks until all tasks complete", t, func() {
 		pool := exec.NewPool(1, 2)

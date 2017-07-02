@@ -53,6 +53,7 @@ func NewPool(queueSize, workers int) *Pool {
 
 // Do enqueues a task for the worker pool to execute.
 // Do panics if Stop has previously been called.
+// To avoid blocking, use Try instead.
 func (p *Pool) Do(task func()) {
 	p.workQueue <- task
 }
@@ -65,6 +66,18 @@ func (p *Pool) Stop() {
 	p.closeOnce.Do(func() {
 		close(p.workQueue)
 	})
+}
+
+// Try is the nonblocking version of Do.
+// If task cannot be executed immediately, then Try does nothing with it
+// and returns false.
+func (p *Pool) Try(task func()) bool {
+	select {
+	case p.workQueue <- task:
+		return true
+	default:
+		return false
+	}
 }
 
 // Wait blocks until the worker pool has finished executing all queued tasks.

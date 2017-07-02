@@ -25,6 +25,9 @@ Except for `Direct`, every implementation provides a `Wait` method which
 blocks until all running tasks are done (although you have to call `Stop`
 first on a `Pool`).
 
+`Bounded` and `Pool` also provide `Try` which is like `Do` except that it
+doesn't block when the task can't be run immediately.
+
 ## Acknowledgements
 
 The semaphore implementation backing `Bounded` is taken from
