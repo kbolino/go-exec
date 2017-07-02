@@ -18,7 +18,7 @@ There are 4 implementations of the `Strategy` interface:
 
 * `Bounded` uses a semaphore to limit the maximum number of goroutines
 * `Direct` runs every task directly on the caller's goroutine
-* `Pool` uses a fixed-size pool of goroutines to run tasks
+* `Pool` uses a fixed-size pool of goroutines to run queued tasks
 * `Unbounded` starts a new goroutine for each task
 
 Except for `Direct`, every implementation provides a `Wait` method which
