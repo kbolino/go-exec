@@ -105,7 +105,6 @@ func TestNewBounded(t *testing.T) {
 					So(f, ShouldNotPanic)
 					So(bounded, ShouldNotBeNil)
 				}
-
 			})
 		}
 	})

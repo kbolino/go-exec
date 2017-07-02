@@ -71,6 +71,7 @@ func (p *Pool) Stop() {
 // Try is the nonblocking version of Do.
 // If task cannot be executed immediately, then Try does nothing with it
 // and returns false.
+// Like Do, Try panics if Stop has previously been called.
 func (p *Pool) Try(task func()) bool {
 	select {
 	case p.workQueue <- task:
