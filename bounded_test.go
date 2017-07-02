@@ -57,10 +57,34 @@ func TestBounded_Try(t *testing.T) {
 			}
 		}()
 		time.Sleep(10 * time.Millisecond)
-		So(tries, ShouldResemble, []bool{true, true, false})
 		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
 		time.Sleep(100 * time.Millisecond)
 		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+		So(tries, ShouldResemble, []bool{true, true, false})
+	})
+}
+
+func TestBounded_TryUntil(t *testing.T) {
+	Convey("Bounded.TryUntil blocks until timeout is reached", t, func() {
+		counter := int32(0)
+		bounded := exec.NewBounded(1)
+		tries := []bool{}
+		go func() {
+			for i := 0; i < 3; i++ {
+				n := i + 1
+				try := bounded.TryUntil(50*time.Millisecond, func() {
+					atomic.AddInt32(&counter, 1)
+					ms := 25 * time.Duration(n)
+					time.Sleep(ms * time.Millisecond)
+				})
+				tries = append(tries, try)
+			}
+		}()
+		time.Sleep(10 * time.Millisecond)
+		So(atomic.LoadInt32(&counter), ShouldEqual, 1)
+		time.Sleep(100 * time.Millisecond)
+		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+		So(tries, ShouldResemble, []bool{true, true, false})
 	})
 }
 

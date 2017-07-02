@@ -14,6 +14,10 @@
 
 package exec
 
+import (
+	"time"
+)
+
 type empty struct{}
 
 // Bounded is an asynchronous execution strategy that runs each task on a new
@@ -60,6 +64,18 @@ func (b *Bounded) Try(task func()) bool {
 	return true
 }
 
+// TryUntil is the time-bounded version of Do.
+// TryUntil blocks until task starts executing or the timeout is reached,
+// whichver happens first.
+// If the timeout is reached before task can start, TryUntil returns false.
+func (b *Bounded) TryUntil(timeout time.Duration, task func()) bool {
+	if !b.tryAcquire1Until(timeout) {
+		return false
+	}
+	go b.runTask(task)
+	return true
+}
+
 // Wait blocks until there are no running goroutines.
 // Wait may prevent Do from starting new goroutines until Wait returns.
 func (b *Bounded) Wait() {
@@ -92,6 +108,17 @@ func (b *Bounded) tryAcquire1() bool {
 	case b.semaphore <- empty{}:
 		return true
 	default:
+		return false
+	}
+}
+
+func (b *Bounded) tryAcquire1Until(timeout time.Duration) bool {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	select {
+	case b.semaphore <- empty{}:
+		return true
+	case <-timer.C:
 		return false
 	}
 }

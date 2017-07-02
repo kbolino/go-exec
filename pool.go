@@ -16,6 +16,7 @@ package exec
 
 import (
 	"sync"
+	"time"
 )
 
 // Pool provides an asynchronous execution strategy using a fixed-size pool
@@ -77,6 +78,22 @@ func (p *Pool) Try(task func()) bool {
 	case p.workQueue <- task:
 		return true
 	default:
+		return false
+	}
+}
+
+// TryUntil is the time-bounded version of Do.
+// TryUntil blocks until task is queued for execution or the timeout is
+// reached, whichever happens first.
+// If the timeout is reached before task can be queued, TryUntil returns false.
+// Like Do, TryUntil panics if Stop has previously been called.
+func (p *Pool) TryUntil(timeout time.Duration, task func()) bool {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	select {
+	case p.workQueue <- task:
+		return true
+	case <-timer.C:
 		return false
 	}
 }

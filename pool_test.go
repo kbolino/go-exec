@@ -97,15 +97,37 @@ func TestPool_Try(t *testing.T) {
 					time.Sleep(50 * time.Millisecond)
 				})
 				tries = append(tries, try)
+				time.Sleep(10 * time.Millisecond)
 			}
 		}()
 		time.Sleep(10 * time.Millisecond)
-		So(tries, ShouldResemble, []bool{true, true, false})
 		So(atomic.LoadInt32(&counter), ShouldEqual, 1)
 		time.Sleep(100 * time.Millisecond)
 		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+		So(tries, ShouldResemble, []bool{true, true, false})
+	})
+}
+
+func TestPool_TryUntil(t *testing.T) {
+	Convey("Pool.TryUntil times out when a task cannot be queued", t, func() {
+		pool := exec.NewPool(1, 1)
+		counter := int32(0)
+		tries := []bool{}
+		go func() {
+			for i := 0; i < 3; i++ {
+				try := pool.TryUntil(50*time.Millisecond, func() {
+					atomic.AddInt32(&counter, 1)
+					time.Sleep(50 * time.Millisecond)
+				})
+				tries = append(tries, try)
+			}
+			atomic.AddInt32(&counter, 1)
+		}()
+		time.Sleep(10 * time.Millisecond)
+		So(atomic.LoadInt32(&counter), ShouldEqual, 1)
 		time.Sleep(100 * time.Millisecond)
-		So(atomic.LoadInt32(&counter), ShouldEqual, 2)
+		So(atomic.LoadInt32(&counter), ShouldEqual, 3)
+		So(tries, ShouldResemble, []bool{true, true, false})
 	})
 }
 
