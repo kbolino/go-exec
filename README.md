@@ -22,3 +22,10 @@ There are 4 implementations of the `Strategy` interface:
 Except for `Direct`, every implementation provides a `Wait` method which
 blocks until all running tasks are done (although you have to call `Stop`
 first on a `Pool`).
+
+## Acknowledgements
+
+The semaphore implementation backing `Bounded` is taken from
+[Go Language Patterns][go-ptrns-sem].
+
+[go-ptrns-sem]: http://www.golangpatterns.info/concurrency/semaphores
