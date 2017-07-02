@@ -28,6 +28,12 @@ first on a `Pool`).
 `Bounded` and `Pool` also provide `Try` which is like `Do` except that it
 doesn't block when the task can't be run immediately.
 
+## Testing
+
+There are unit tests with good coverage on all of the functions and methods,
+but they are timing sensitive. For accurate results, the tests should not be
+run on machines under heavy load.
+
 ## Acknowledgements
 
 The semaphore implementation backing `Bounded` is taken from
